@@ -1,0 +1,67 @@
+---
+title: "ActivityU7-Victor Omondi"
+author: "Yiying Xiong"
+date: '2022-05-22'
+output: pdf_document
+email: 'omondivkey@gmail.com'
+website: 'academicwits.com'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rent1<-read.delim("C:/Users/Q/Downloads/Rent_Data.txt")
+rent<- rent1[-c(1,6)]
+#remove outliers
+library(outliers)
+scores(na.omit(rent), type="iqr", prob=NA, lim="iqr")
+#standardize the data
+scaled_rent<-scale(rent)
+summary(scaled_rent)
+```
+
+```{r}
+#distance between data points
+dist_among_observed<- dist(scaled_rent, method="euclidean")
+head(table(dist_among_observed))
+cluster_fit_average<-hclust(dist_among_observed,"average")
+cluster_fit_centroid<- hclust(dist_among_observed, method="centroid")
+```
+
+```{r}
+library(NbClust)
+number_of_clusters<-NbClust(scaled_rent, distance='euclidean', min.nc=2, max.nc=5, method="average")
+```
+
+```{r}
+plot(cluster_fit_centroid, rent$Rent)
+rect.hclust(cluster_fit_centroid, k=3)
+```
+
+```{r}
+final_clusters<-cutree(cluster_fit_average, k=3)
+final_clusters
+final_clusters1<-cutree(cluster_fit_centroid, k=3)
+final_clusters1
+rent
+```
+
+```{r}
+aggregate(rent, by=list(cluster=final_clusters), median)
+optimal_clusters<-NbClust(scaled_rent, min.nc=2, max.nc=5, method='kmeans')
+optimal_clusters
+```
+
+```{r}
+final_clusters_kmeans<-kmeans(scaled_rent, 2, nstart=20)
+final_clusters_kmeans
+```
+
+```{r}
+cluster1<- final_clusters_kmeans$cluster
+aggregate(rent, by=list(cluster1), median)
+```
+
+
